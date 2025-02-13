@@ -1,6 +1,7 @@
 package com.study.event.controller;
 
 import com.study.event.domain.event.dto.request.EventCreate;
+import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
 import com.study.event.service.EventService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,7 @@ public class EventController {
     public ResponseEntity<?> getList(
             @RequestParam(defaultValue = "id") String sort
     ) {
-        List<Event> events = eventService.getEvents(sort);
-
+        List<EventResponse> events = eventService.getEvents(sort);
         return ResponseEntity.ok().body(events);
     }
 

@@ -1,6 +1,7 @@
 package com.study.event.service;
 
 import com.study.event.domain.event.dto.request.EventCreate;
+import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
 import com.study.event.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +21,12 @@ public class EventService {
     private final EventRepository eventRepository;
 
     // 전체조회
-    public List<Event> getEvents(String sort) {
-        return eventRepository.findEvents(sort);
+    public List<EventResponse> getEvents(String sort) {
+        return eventRepository.findEvents(sort)
+                .stream()
+                .map(EventResponse::from)
+                .toList()
+                ;
     }
 
     // 이벤트 등록
