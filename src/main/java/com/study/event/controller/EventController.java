@@ -57,4 +57,28 @@ public class EventController {
 
         return ResponseEntity.ok().body(detailResponse);
     }
+
+    // 삭제 요청
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteEvent(
+            @PathVariable Long id
+    ) {
+        eventService.deleteEvent(id);
+
+        return ResponseEntity.ok().body(Map.of(
+                "message", "이벤트가 삭제되었습니다. id - " + id
+        ));
+    }
+    // 수정 요청
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEvent(
+            @PathVariable Long id
+            , @RequestBody EventCreate dto
+    ) {
+        eventService.modifyEvent(dto, id);
+
+        return ResponseEntity.ok().body(Map.of(
+                "message", "이벤트가 수정되었습니다. id - " + id
+        ));
+    }
 }
