@@ -1,6 +1,7 @@
 package com.study.event.service;
 
 import com.study.event.domain.event.dto.request.EventCreate;
+import com.study.event.domain.event.dto.response.EventDetailResponse;
 import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
 import com.study.event.repository.EventRepository;
@@ -21,12 +22,22 @@ public class EventService {
     private final EventRepository eventRepository;
 
     // 전체조회
+    @Transactional(readOnly = true)
     public List<EventResponse> getEvents(String sort) {
         return eventRepository.findEvents(sort)
                 .stream()
                 .map(EventResponse::from)
                 .toList()
                 ;
+    }
+
+    // 단일 조회
+    @Transactional(readOnly = true)
+    public EventDetailResponse findOne(Long id) {
+
+        Event event = eventRepository.findById(id).orElseThrow();
+
+        return EventDetailResponse.from(event);
     }
 
     // 이벤트 등록
