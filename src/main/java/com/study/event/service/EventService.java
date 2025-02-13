@@ -20,8 +20,8 @@ public class EventService {
     private final EventRepository eventRepository;
 
     // 전체조회
-    public List<Event> getEvents() {
-        return eventRepository.findAll();
+    public List<Event> getEvents(String sort) {
+        return eventRepository.findEvents(sort);
     }
 
     // 이벤트 등록
