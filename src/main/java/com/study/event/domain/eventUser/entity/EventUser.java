@@ -39,4 +39,5 @@ public class EventUser {
     // 이메일 인증을 완료했는지 여부
     @Column(nullable = false)
     private boolean emailVerified;
+
 }
