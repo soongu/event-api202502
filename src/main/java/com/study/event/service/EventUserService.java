@@ -112,4 +112,29 @@ public class EventUserService {
     private static String generateVerificationCode() {
         return String.valueOf((int) (Math.random() * 9000 + 1000));
     }
+
+    /**
+     * 사용자가 전송한 인증코드가 발급받은 인증코드와 일치하는지 확인
+     * @param email - 사용자의 이메일
+     * @param code - 사용자가 전송한 인증코드
+     * @return 인증코드가 일치하고 만료되지 않았다면 true, 그게 아니라면 false
+     */
+    public boolean isMatchCode(String email, String code) {
+
+        // 1. 이메일을 통해 임시회원 가입한 회원정보를 탐색
+        EventUser foundUser = eventUserRepository.findByEmail(email).orElseThrow();
+
+        // 2. 인증코드가 있는지 조회
+        EmailVerification verificationInfo = emailVerificationRepository.findByEventUser(foundUser).orElseThrow();
+
+        // 3. 코드가 일치하고 만료시간이 지나지 않았는지 체크
+        if (
+                code.equals(verificationInfo.getVerificationCode())
+                && verificationInfo.getExpiryDate().isAfter(LocalDateTime.now())
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }
