@@ -54,6 +54,11 @@ public class EventUserService {
 
         EventUser savedUser = eventUserRepository.save(tempUser);
 
+        generateAndSendCode(email, savedUser);
+
+    }
+
+    private void generateAndSendCode(String email, EventUser savedUser) {
         // 2. 인증메일 발송
         String code = sendVerificationEmail(email);
 
@@ -65,7 +70,6 @@ public class EventUserService {
                 .build();
 
         emailVerificationRepository.save(verification);
-
     }
 
     // 이메일 인증코드를 발송하기
@@ -132,9 +136,32 @@ public class EventUserService {
                 code.equals(verificationInfo.getVerificationCode())
                 && verificationInfo.getExpiryDate().isAfter(LocalDateTime.now())
         ) {
-            return true;
-        }
+            // 이메일 인증 완료처리
+            // EventUser엔터티에서 emailVerified값을 true로 변경
+            foundUser.emailVerify();
+            eventUserRepository.save(foundUser);
 
-        return false;
+            // 인증코드 삭제
+            emailVerificationRepository.delete(verificationInfo);
+
+            return true;
+        } else { // 인증코드가 틀렸거나 만료된 경우
+            // 인증코드를 재발급해서 이메일을 재발송
+            // 새인증코드 발급 및 이메일 전송 데이터베이스 처리 (수정처리)
+            updateVerificationCode(email, verificationInfo);
+            return false;
+        }
+    }
+
+    // 인증코드 재발급 처리
+    private void updateVerificationCode(String email, EmailVerification emailVerification) {
+        // 1. 새인증코드 생성 및 메일발송
+        String newCode = sendVerificationEmail(email);
+
+        // 2. 데이터베이스에 수정처리 (새코드, 새 만료시간)
+        emailVerification.updateNewCode(newCode);
+
+        // 3. 데이터베이스에 수정 갱신
+        emailVerificationRepository.save(emailVerification);
     }
 }
