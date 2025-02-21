@@ -1,6 +1,8 @@
 package com.study.event.service;
 
+import com.study.event.domain.eventUser.entity.EmailVerification;
 import com.study.event.domain.eventUser.entity.EventUser;
+import com.study.event.repository.EmailVerificationRepository;
 import com.study.event.repository.EventUserRepository;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +12,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
@@ -25,6 +29,7 @@ public class EventUserService {
     private final JavaMailSender mailSender;
 
     private final EventUserRepository eventUserRepository;
+    private final EmailVerificationRepository emailVerificationRepository;
 
     // 이메일 중복확인 처리
 //    @Transactional(readOnly = true)
@@ -33,16 +38,38 @@ public class EventUserService {
         boolean flag = eventUserRepository.existsByEmail(email);
         log.info("Checking email {} is duplicate: {}", email, flag);
 
-        // 사용가능한 이메일인 경우 인증메일 발송
+        // 사용가능한 이메일인 경우 일련의 후속처리 (인증메일 발송, 데이터베이스 처리...)
         if (!flag) {
-            sendVerificationEmail(email);
+            processSignup(email);
         }
 
         return flag;
     }
 
+    private void processSignup(String email) {
+        // 1. 임시 회원가입 (이메일 인증이 안된 상태, 패스워드가 입력되지 않은 상태)
+        EventUser tempUser = EventUser.builder()
+                .email(email)
+                .build();
+
+        EventUser savedUser = eventUserRepository.save(tempUser);
+
+        // 2. 인증메일 발송
+        String code = sendVerificationEmail(email);
+
+        // 3. 인증코드와 만료시간을 데이터베이스에 저장
+        EmailVerification verification = EmailVerification.builder()
+                .verificationCode(code)
+                .expiryDate(LocalDateTime.now().plusMinutes(5)) // 만료시간 5분
+                .eventUser(savedUser) // FK
+                .build();
+
+        emailVerificationRepository.save(verification);
+
+    }
+
     // 이메일 인증코드를 발송하기
-    public void sendVerificationEmail(String email) {
+    public String sendVerificationEmail(String email) {
 
         // 4자리 인증 코드 만들기 (1000~9999)
         String code = generateVerificationCode();
@@ -72,6 +99,7 @@ public class EventUserService {
             mailSender.send(mimeMessage);
 
             log.info("{} 님에게 이메일이 발송되었습니다.", email);
+            return code;
 
         } catch (Exception e) {
             e.printStackTrace();
