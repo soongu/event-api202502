@@ -38,12 +38,32 @@ public class EventUserService {
         boolean flag = eventUserRepository.existsByEmail(email);
         log.info("Checking email {} is duplicate: {}", email, flag);
 
+        // 이메일이 중복되었지만 회원가입이 아직 마무리되지 않은 회원은 인증코드를 재발송
+        if (flag && notFinish(email)) {
+            return false;
+        }
+
         // 사용가능한 이메일인 경우 일련의 후속처리 (인증메일 발송, 데이터베이스 처리...)
         if (!flag) {
             processSignup(email);
         }
 
         return flag;
+    }
+
+    private boolean notFinish(String email) {
+
+        // 회원 조회
+        EventUser foundUser = eventUserRepository.findByEmail(email).orElseThrow();
+
+        // 이메일인증이 되었는지 여부, 패스워드가 세팅되었는지 여부
+        if (!foundUser.isEmailVerified() || foundUser.getPassword() == null) {
+            // 인증코드 재생성 및 이메일발송 및 데이터베이스 갱신
+            EmailVerification ev = emailVerificationRepository.findByEventUser(foundUser).orElseThrow();
+            updateVerificationCode(email, ev);
+            return true;
+        }
+        return false;
     }
 
     private void processSignup(String email) {
