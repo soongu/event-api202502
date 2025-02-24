@@ -43,6 +43,9 @@ logging:
       hibernate:
         SQL: info
 
-
+jwt:
+  secret-key: L6h/xMxGO53HQmR/OB99qR/y0kTr2CAyaI5RqBIX184=  # 토큰발급시와 토큰위조검사시 사용할 서명
+  access-token-validity-time: 3600000  # 1시간 (ms)
+  refresh-token-validity-time: 604800000 # 7일 (ms)
 
 
