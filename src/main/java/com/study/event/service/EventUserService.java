@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -59,8 +60,14 @@ public class EventUserService {
         // 이메일인증이 되었는지 여부, 패스워드가 세팅되었는지 여부
         if (!foundUser.isEmailVerified() || foundUser.getPassword() == null) {
             // 인증코드 재생성 및 이메일발송 및 데이터베이스 갱신
-            EmailVerification ev = emailVerificationRepository.findByEventUser(foundUser).orElseThrow();
-            updateVerificationCode(email, ev);
+            Optional<EmailVerification> ev = emailVerificationRepository.findByEventUser(foundUser);
+
+            if (ev.isPresent()) { // 이메일 인증코드가 존재하면
+                updateVerificationCode(email, ev.get()); // 인증코드를 수정
+            } else { // 인증은했는데 마무리를 못지은 회원
+                generateAndSendCode(email, foundUser); // 인증코드를 재생성
+            }
+
             return true;
         }
         return false;
