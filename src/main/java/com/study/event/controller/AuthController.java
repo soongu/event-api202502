@@ -1,6 +1,8 @@
 package com.study.event.controller;
 
+import com.study.event.domain.eventUser.dto.request.LoginRequest;
 import com.study.event.domain.eventUser.dto.request.SignupRequest;
+import com.study.event.exception.LoginFailException;
 import com.study.event.service.EventUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,4 +57,22 @@ public class AuthController {
                 "message", "회원가입이 완료되었습니다."
         ));
     }
+
+    // 로그인 검증 요청
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest dto) {
+
+        try {
+            eventUserService.authenticate(dto);
+            return ResponseEntity.ok().body(Map.of(
+                    "message", "로그인이 성공했습니다."
+            ));
+        } catch (LoginFailException e) {
+            return ResponseEntity.status(422)
+                    .body(Map.of(
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+
 }

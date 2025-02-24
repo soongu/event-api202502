@@ -1,8 +1,10 @@
 package com.study.event.service;
 
+import com.study.event.domain.eventUser.dto.request.LoginRequest;
 import com.study.event.domain.eventUser.dto.request.SignupRequest;
 import com.study.event.domain.eventUser.entity.EmailVerification;
 import com.study.event.domain.eventUser.entity.EventUser;
+import com.study.event.exception.LoginFailException;
 import com.study.event.repository.EmailVerificationRepository;
 import com.study.event.repository.EventUserRepository;
 import jakarta.mail.internet.MimeMessage;
@@ -212,5 +214,26 @@ public class EventUserService {
         // 3. 데이터베이스에 패스워드를 반영, 회원가입시간 저장
         foundUser.confirm(passwordEncoder.encode(dto.password()));
         eventUserRepository.save(foundUser);
+    }
+
+    // 로그인 검증 수행
+    public void authenticate(LoginRequest dto) {
+
+        // 이메일을 통한 회원 조회
+        EventUser foundUser = eventUserRepository.findByEmail(dto.email()).orElseThrow(
+                () -> new LoginFailException("가입된 회원이 아닙니다.")
+        );
+
+        // 이메일 인증을 안했거나, 패스워드 입력단계를 수행하지 않은 회원
+        if (!foundUser.isEmailVerified() || foundUser.getPassword() == null) {
+            throw new LoginFailException("회원가입이 완료되지 않은 회원입니다. 다시 가입해주세요.");
+        }
+
+        // 패스워드 일치 검사
+        if (!passwordEncoder.matches(dto.password(), foundUser.getPassword())) {
+            throw new LoginFailException("비밀번호가 틀렸습니다.");
+        }
+
+        // 로그인 성공
     }
 }
