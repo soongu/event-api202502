@@ -1,12 +1,11 @@
 package com.study.event.controller;
 
+import com.study.event.domain.eventUser.dto.request.SignupRequest;
 import com.study.event.service.EventUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -41,6 +40,19 @@ public class AuthController {
 
         return ResponseEntity.ok().body(Map.of(
                 "isMatch", isMatch
+        ));
+    }
+
+    // 회원가입 마무리 요청
+    @PostMapping("/join")
+    public ResponseEntity<?> join(@RequestBody SignupRequest dto) {
+
+        log.info("save request user info - {}", dto);
+
+        eventUserService.confirmSignup(dto);
+
+        return ResponseEntity.ok().body(Map.of(
+                "message", "회원가입이 완료되었습니다."
         ));
     }
 }

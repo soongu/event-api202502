@@ -1,5 +1,6 @@
 package com.study.event.service;
 
+import com.study.event.domain.eventUser.dto.request.SignupRequest;
 import com.study.event.domain.eventUser.entity.EmailVerification;
 import com.study.event.domain.eventUser.entity.EventUser;
 import com.study.event.repository.EmailVerificationRepository;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,8 @@ public class EventUserService {
 
     // 이메일 발송을 위한 객체
     private final JavaMailSender mailSender;
+    // 패스워드 인코딩을 위한 객체
+    private final PasswordEncoder passwordEncoder;
 
     private final EventUserRepository eventUserRepository;
     private final EmailVerificationRepository emailVerificationRepository;
@@ -190,5 +194,23 @@ public class EventUserService {
 
         // 3. 데이터베이스에 수정 갱신
         emailVerificationRepository.save(emailVerification);
+    }
+
+    // 회원가입 완료처리
+    public void confirmSignup(SignupRequest dto) {
+
+        // 1. 기존에 임시회원가입된 정보를 조회
+        EventUser foundUser = eventUserRepository.findByEmail(dto.email())
+                .orElseThrow(
+                        () -> new RuntimeException("회원 정보가 없습니다.")
+                );
+
+        // 2. 이메일 인증이 끝났는지 체크
+        if (!foundUser.isEmailVerified()) {
+            throw new RuntimeException("이메일 인증이 완료되지 않았습니다.");
+        }
+        // 3. 데이터베이스에 패스워드를 반영, 회원가입시간 저장
+        foundUser.confirm(passwordEncoder.encode(dto.password()));
+        eventUserRepository.save(foundUser);
     }
 }
