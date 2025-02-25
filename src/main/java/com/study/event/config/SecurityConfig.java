@@ -1,6 +1,8 @@
 package com.study.event.config;
 
+import com.study.event.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -16,8 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // 커스텀 필터 의존
-//    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    // 커스텀 필터 의존성 주입
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // 시큐리티 필터체인 빈을 등록
     @Bean
@@ -42,7 +44,7 @@ public class SecurityConfig {
                                 .anyRequest().permitAll()
                 )
                 // 토큰을 검사하는 커스텀 인증필터를 시큐리티에 등록
-//                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
                 // 시큐리티 기본 인증인가차단의 상태코드는 403으로 지정되어 있음
                 // 그런데 403은 인가차단이지 인증차단코드가 아님, 인증차단은 401로 해야 적합함
