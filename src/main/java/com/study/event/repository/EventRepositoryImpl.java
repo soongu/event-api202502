@@ -18,7 +18,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
     private final JPAQueryFactory factory;
 
     @Override
-    public Slice<Event> findEvents(String sort, Pageable pageable) {
+    public Slice<Event> findEvents(String sort, Pageable pageable, Long userId) {
 
         OrderSpecifier<?> orderSpecifier;
         switch (sort) {
@@ -35,6 +35,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         // 무한스크롤링을 위해서는 사이즈보다 1개 더 많이 조회해봐야 함
         List<Event> eventList = factory
                 .selectFrom(event)
+                .where(event.eventUser.id.eq(userId))
                 .orderBy(orderSpecifier)
                 .limit(pageable.getPageSize() + 1)
                 .offset(pageable.getOffset())

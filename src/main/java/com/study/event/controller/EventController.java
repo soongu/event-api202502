@@ -27,7 +27,8 @@ public class EventController {
     @GetMapping
     public ResponseEntity<?> getList(
             @RequestParam(required = false) String sort,
-            @RequestParam(defaultValue = "1") int page
+            @RequestParam(defaultValue = "1") int page,
+            @AuthenticationPrincipal String email
     ) {
         if (sort == null) {
             return ResponseEntity.badRequest().body(
@@ -37,7 +38,7 @@ public class EventController {
             );
         }
 
-        Map<String, Object> events = eventService.getEvents(sort, page);
+        Map<String, Object> events = eventService.getEvents(sort, page, email);
 
         return ResponseEntity.ok().body(events);
     }

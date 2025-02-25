@@ -9,7 +9,7 @@ import org.springframework.data.domain.Slice;
 public interface EventRepositoryCustom {
 
     // 이벤트 목록 조회 + 페이징 처리
-    Slice<Event> findEvents(String sort, Pageable pageable);
+    Slice<Event> findEvents(String sort, Pageable pageable, Long userId);
 
     // ...
 }
