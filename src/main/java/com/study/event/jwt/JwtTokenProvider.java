@@ -1,6 +1,9 @@
 package com.study.event.jwt;
 
 
+import com.study.event.domain.eventUser.entity.EventUser;
+import com.study.event.domain.eventUser.entity.Role;
+import com.study.event.jwt.dto.TokenUserInfo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -13,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Map;
 
 // 인증을 위한 토큰을 생성하여 발급하고
 // 전송된 토큰의 위조 및 만료시간을 검사하는 역할
@@ -36,17 +40,17 @@ public class JwtTokenProvider {
 
     // 토큰 발급 로직
     // 액세스 토큰 생성 (사용자가 들고다닐 신분증) : 유효기간이 짧다.
-    public String createAccessToken(String email) {
-        return createToken(email, jwtProperties.getAccessTokenValidityTime());
+    public String createAccessToken(EventUser eventUser) {
+        return createToken(eventUser, jwtProperties.getAccessTokenValidityTime());
     }
 
     // 리프레시 토큰 생성 (서버가 보관할 신분증을 재발급하기위한 정보) : 유효기간이 비교적 김
-    public String createRefreshToken(String email) {
-        return createToken(email, jwtProperties.getRefreshTokenValidityTime());
+    public String createRefreshToken(EventUser eventUser) {
+        return createToken(eventUser, jwtProperties.getRefreshTokenValidityTime());
     }
 
     // 공통 토큰 생성 로직
-    private String createToken(String email, long validityTime) {
+    private String createToken(EventUser eventUser, long validityTime) {
 
         // 현재 시간
         Date now = new Date();
@@ -54,12 +58,19 @@ public class JwtTokenProvider {
         // 만료시간
         Date validity = new Date(now.getTime() + validityTime);
 
+
         // 서명을 넣어야 함
         return Jwts.builder()
+                // 토큰에 포함시킬 일반적인 정보가 아닌 커스텀 정보(이메일, 권한)는 클레임에 따로 세팅
+                // 커스텀정보는 제일 먼저 세팅
+                .setClaims(Map.of(
+                        "email", eventUser.getEmail(),
+                        "role", eventUser.getRole().toString()
+                ))
                 .setIssuer("Event API")  // 발급자 정보
                 .setIssuedAt(now) // 발급시간
                 .setExpiration(validity) // 만료시간
-                .setSubject(email) // 이 토큰을 구별할 유일한 값
+                .setSubject(eventUser.getId().toString()) // 이 토큰을 구별할 유일한 값
                 .signWith(key) // 서명 포함
                 .compact();
     }
@@ -80,12 +91,19 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 검증된 토큰에서 이메일을 추출하는 메서드
+     * 검증된 토큰에서 이메일, 권한 등을 추출하는 메서드
      * @param token - 인증 토큰
-     * @return 토큰에서 추출한 이메일
+     * @return 토큰에서 추출한 이메일, 권한등을 담은 DTO
      */
-    public String getCurrentLoginUserEmail(String token) {
-        return parseClaims(token).getSubject();
+    public TokenUserInfo getCurrentLoginUserInfo(String token) {
+        // 토큰에 들어있는 데이터들의 집합
+        Claims claims = parseClaims(token);
+
+        return TokenUserInfo.builder()
+                .userId(Long.valueOf(claims.getSubject()))
+                .email(claims.get("email", String.class))
+                .role(Role.valueOf(claims.get("role", String.class)))
+                .build();
     }
 
     /**
