@@ -239,7 +239,7 @@ public class EventUserService {
         }
 
         // 로그인 성공 - 액세스 토큰을 발급
-        String accessToken = tokenProvider.createAccessToken(dto.email());
+        String accessToken = tokenProvider.createAccessToken(foundUser);
 
         return Map.of(
                 "token", accessToken,

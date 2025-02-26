@@ -33,12 +33,12 @@ public class EventService {
 
     // 전체조회
     @Transactional(readOnly = true)
-    public Map<String, Object> getEvents(String sort, int pageNo, String email) {
+    public Map<String, Object> getEvents(String sort, int pageNo, Long userId) {
 
         Slice<Event> events = eventRepository.findEvents(
                 sort,
                 PageRequest.of(pageNo - 1, 4),
-                getCurrentLoggedInUser(email).getId()
+                userId
         );
 
         List<EventResponse> eventList = events.getContent()

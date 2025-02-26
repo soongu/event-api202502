@@ -4,6 +4,7 @@ import com.study.event.domain.event.dto.request.EventCreate;
 import com.study.event.domain.event.dto.response.EventDetailResponse;
 import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
+import com.study.event.jwt.dto.TokenUserInfo;
 import com.study.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,8 +29,8 @@ public class EventController {
     public ResponseEntity<?> getList(
             @RequestParam(required = false) String sort,
             @RequestParam(defaultValue = "1") int page,
-            @AuthenticationPrincipal String email
-    ) {
+            @AuthenticationPrincipal TokenUserInfo userInfo
+            ) {
         if (sort == null) {
             return ResponseEntity.badRequest().body(
                     Map.of(
@@ -38,7 +39,7 @@ public class EventController {
             );
         }
 
-        Map<String, Object> events = eventService.getEvents(sort, page, email);
+        Map<String, Object> events = eventService.getEvents(sort, page, userInfo.userId());
 
         return ResponseEntity.ok().body(events);
     }
@@ -47,9 +48,9 @@ public class EventController {
     @PostMapping
     public ResponseEntity<?> register(
             @RequestBody EventCreate dto,
-            @AuthenticationPrincipal String email
+            @AuthenticationPrincipal TokenUserInfo userInfo
     ) {
-        eventService.saveEvent(dto, email);
+        eventService.saveEvent(dto, userInfo.email());
 
         return ResponseEntity.ok().body(Map.of(
                 "message", "이벤트가 정상 등록되었습니다."
