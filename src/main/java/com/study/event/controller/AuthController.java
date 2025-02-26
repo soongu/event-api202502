@@ -82,9 +82,9 @@ public class AuthController {
             @AuthenticationPrincipal TokenUserInfo userInfo
     ) {
 
-        eventUserService.promoteToPremium(userInfo);
+        Map<String, Object> responseMap = eventUserService.promoteToPremium(userInfo);
 
-        return null;
+        return ResponseEntity.ok().body(responseMap);
     }
 
 }
