@@ -3,10 +3,12 @@ package com.study.event.controller;
 import com.study.event.domain.eventUser.dto.request.LoginRequest;
 import com.study.event.domain.eventUser.dto.request.SignupRequest;
 import com.study.event.exception.LoginFailException;
+import com.study.event.jwt.dto.TokenUserInfo;
 import com.study.event.service.EventUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -72,6 +74,17 @@ public class AuthController {
                             "message", e.getMessage()
                     ));
         }
+    }
+
+    // Premium회원으로 등급업 하는 요청
+    @PutMapping("/promote")
+    public ResponseEntity<?> promote(
+            @AuthenticationPrincipal TokenUserInfo userInfo
+    ) {
+
+        eventUserService.promoteToPremium(userInfo);
+
+        return null;
     }
 
 }

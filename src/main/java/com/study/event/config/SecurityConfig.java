@@ -38,8 +38,12 @@ public class SecurityConfig {
                 // 게시판 인가 설정
                 .authorizeHttpRequests(auth ->
                         auth
+
+                                // 등업은 일반회원만 가능
+                                .requestMatchers("/api/auth/promote").hasAuthority("COMMON")
                                 // '/api/auth'로 시작하는 요청은 인증을 필요로 하지 않음
                                 .requestMatchers("/api/auth/**").permitAll()
+
 
                                 // /api/events로 시작하는 요청은 특정 권한이 필요함
 //                                .requestMatchers("/api/events/**").hasAnyAuthority(Role.PREMIUM.toString(), "ADMIN")
