@@ -4,11 +4,13 @@ import com.study.event.domain.event.dto.request.EventCreate;
 import com.study.event.domain.event.dto.response.EventDetailResponse;
 import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
+import com.study.event.domain.eventUser.entity.Role;
 import com.study.event.jwt.dto.TokenUserInfo;
 import com.study.event.service.EventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -58,8 +60,15 @@ public class EventController {
     }
 
     // 단일 조회 요청
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('PREMIUM')")
     @GetMapping("/{eventId}")
-    public ResponseEntity<?> getEvent(@PathVariable Long eventId) {
+    public ResponseEntity<?> getEvent(
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal TokenUserInfo userInfo
+    ) {
+//        if (userInfo.role() == Role.COMMON) {
+//            return ResponseEntity.status(403).body("권한이 없습니다.");
+//        }
 
         if (eventId == null || eventId < 1) {
             String errorMessage = "eventId가 유효하지 않습니다.";

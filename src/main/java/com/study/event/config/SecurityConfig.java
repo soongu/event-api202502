@@ -2,10 +2,11 @@ package com.study.event.config;
 
 import com.study.event.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity  // 커스텀 시큐리티 설정파일이라는 의미
+@EnableMethodSecurity // 컨트롤러에서 인가처리를 하게하는 설정
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -33,19 +35,27 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 인가 설정
+                // 게시판 인가 설정
                 .authorizeHttpRequests(auth ->
                         auth
                                 // '/api/auth'로 시작하는 요청은 인증을 필요로 하지 않음
                                 .requestMatchers("/api/auth/**").permitAll()
 
-                                .requestMatchers("/api/events/**").hasAnyAuthority("PREMIUM", "ADMIN")
+                                // /api/events로 시작하는 요청은 특정 권한이 필요함
+//                                .requestMatchers("/api/events/**").hasAnyAuthority(Role.PREMIUM.toString(), "ADMIN")
+
+                                // 이벤트 삭제요청은 관리자만 가능
+                                .requestMatchers(HttpMethod.DELETE, "/api/events/*").hasAuthority("ADMIN")
 
                                 // '/api'로 시작하는 요청은 모두 인증을 필수로 적용
                                 .requestMatchers("/api/**").authenticated()
                                 // 기타 등등 나머지(jsp, css, js, image...)는 모두 허용
                                 .anyRequest().permitAll()
                 )
+                // 댓글 인가설정
+                .authorizeHttpRequests(auth -> {
+
+                })
                 // 토큰을 검사하는 커스텀 인증필터를 시큐리티에 등록
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 
