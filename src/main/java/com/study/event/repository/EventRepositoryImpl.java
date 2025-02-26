@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.study.event.domain.event.entity.QEvent.event;
 
@@ -53,5 +54,16 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
 
         return new SliceImpl<>(eventList, pageable, hasNext);
 
+    }
+
+    @Override
+    public Optional<Long> countEventByUser(Long userId) {
+        return Optional.ofNullable(
+                factory
+                .select(event.count())
+                .from(event)
+                .where(event.eventUser.id.eq(userId))
+                .fetchFirst()
+        );
     }
 }

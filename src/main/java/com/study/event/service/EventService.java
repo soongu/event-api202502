@@ -51,6 +51,7 @@ public class EventService {
         return Map.of(
                 "hasNext", events.hasNext()
                 , "eventList", eventList
+                , "totalCount", eventRepository.countEventByUser(userId).orElse(0L)
         );
     }
 
