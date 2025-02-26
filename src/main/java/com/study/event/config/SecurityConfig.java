@@ -38,6 +38,9 @@ public class SecurityConfig {
                         auth
                                 // '/api/auth'로 시작하는 요청은 인증을 필요로 하지 않음
                                 .requestMatchers("/api/auth/**").permitAll()
+
+                                .requestMatchers("/api/events/**").hasAnyAuthority("PREMIUM", "ADMIN")
+
                                 // '/api'로 시작하는 요청은 모두 인증을 필수로 적용
                                 .requestMatchers("/api/**").authenticated()
                                 // 기타 등등 나머지(jsp, css, js, image...)는 모두 허용
