@@ -5,6 +5,7 @@ import com.study.event.domain.event.dto.response.EventDetailResponse;
 import com.study.event.domain.event.dto.response.EventResponse;
 import com.study.event.domain.event.entity.Event;
 import com.study.event.domain.eventUser.entity.EventUser;
+import com.study.event.domain.eventUser.entity.Role;
 import com.study.event.repository.EventRepository;
 import com.study.event.repository.EventUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -65,12 +66,21 @@ public class EventService {
     // 이벤트 등록
     public void saveEvent(EventCreate dto, String email) {
 
+        // 권한이 일반회원이고 이벤트 생성개수가 4개면 더 이상 이벤트 생성을 허용하지 않음
+        EventUser foundUser = getCurrentLoggedInUser(email);
+        if (
+                foundUser.getRole() == Role.COMMON
+                && foundUser.getEventList().size() >= 4
+        ) {
+            throw new RuntimeException("일반 회원은 더 이상 이벤트를 생성할 수 없습니다.");
+        }
+
         Event eventEntity = Event.builder()
                 .title(dto.title())
                 .description(dto.desc())
                 .image(dto.imageUrl())
                 .date(dto.beginDate())
-                .eventUser(getCurrentLoggedInUser(email)) // 연관관계 컬럼 매핑
+                .eventUser(foundUser) // 연관관계 컬럼 매핑
                 .build();
 
         eventRepository.save(eventEntity);

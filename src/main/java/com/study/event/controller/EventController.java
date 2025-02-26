@@ -52,11 +52,18 @@ public class EventController {
             @RequestBody EventCreate dto,
             @AuthenticationPrincipal TokenUserInfo userInfo
     ) {
-        eventService.saveEvent(dto, userInfo.email());
+        try {
+            eventService.saveEvent(dto, userInfo.email());
 
-        return ResponseEntity.ok().body(Map.of(
-                "message", "이벤트가 정상 등록되었습니다."
-        ));
+            return ResponseEntity.ok().body(Map.of(
+                    "message", "이벤트가 정상 등록되었습니다."
+            ));
+        } catch (RuntimeException e) {
+            log.warn("인가에 실패했습니다.");
+            return ResponseEntity.status(403).body(Map.of(
+                    "message", e.getMessage()
+            ));
+        }
     }
 
     // 단일 조회 요청
