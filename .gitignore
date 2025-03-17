@@ -1,4 +1,5 @@
 application.yml
+application-*.yml
 
 .idea/
 .gradle
