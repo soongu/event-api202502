@@ -13,7 +13,7 @@ public class HealthCheckController {
 
     @GetMapping("/status")
     public ResponseEntity<?> healthCheck() {
-        String checkMessage = "server is running....";
+        String checkMessage = "서버가 실행중입니다.....";
         log.info(checkMessage);
         return ResponseEntity.ok()
                 .body(Map.of(
